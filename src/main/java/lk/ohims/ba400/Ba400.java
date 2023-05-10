@@ -22,8 +22,8 @@ public class Ba400 {
         while (!action.equals("exit")) {
             switch (action) {
                 case "1":
-                    // Send an ENQ message to the LIMS middleware
-                    sendEnqAndWaitForAck(limsSocket);
+                    // Send an QBP message to the LIMS middleware
+                    sendQbp11Message(limsSocket);
                     break;
                 case "2":
                     // Process a patient with flags message
@@ -61,7 +61,7 @@ public class Ba400 {
 
     private static String promptForAction() {
         return JOptionPane.showInputDialog("Please choose the next action:\n"
-                + "1. Send an ENQ message\n"
+                + "1. Send QBP message\n"
                 + "2. Process a patient with flags message\n"
                 + "3. Process a QC without flags message\n"
                 + "4. Query all\n"
@@ -109,7 +109,6 @@ public class Ba400 {
 
 //            // Send the ENQ message
 //            sendEnqAndWaitForAck(limsSocket);
-
             // Send the HL7 message
             limsSocket.getOutputStream().write(hl7Message.getBytes());
             limsSocket.getOutputStream().flush();
@@ -132,8 +131,61 @@ public class Ba400 {
         }
     }
 
-    private static void sendQueryAll(Socket limsSocket) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    private static String sendQbp11Message(Socket limsSocket) {
+        System.out.println("sendQbp11Message");
+        try {
+            // Create the HL7 message
+            String hl7Message = "MSH|^~\\&|BA400|Biosystems|Host|Host provider|20230509214700||QBP^Q11^QBP_Q11|070496a9-e177-4aaa-8276-b50461812a7d|P|2.5.1|||ER|AL||UNICODE UTF-8|||LAB-27^IHE\n"
+                    + "QPD|WOS^Work Order Step^IHE_LABTF|070496a9e1774aaa8276b50461812a7d|32899042\n";
+
+//            // Send the ENQ message
+//            sendEnqAndWaitForAck(limsSocket);
+            // Send the HL7 message
+            limsSocket.getOutputStream().write(hl7Message.getBytes());
+            limsSocket.getOutputStream().flush();
+            System.out.println("HL7 message sent:\n" + hl7Message);
+
+            // Wait for the response message
+            byte[] buffer = new byte[1024];
+            int bytesRead = limsSocket.getInputStream().read(buffer);
+            if (bytesRead != -1) {
+                String response = new String(buffer, 0, bytesRead);
+                System.out.println("Response message received:\n" + response);
+                return response;
+            } else {
+                System.out.println("Error: Did not receive a response message");
+                return "Error: Did not receive a response message";
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    private static String sendQueryAll(Socket limsSocket) {
+        String hl7Message = "MSH|^~\\&|BA400|Biosystems|Host|Host provider|20230509201928||QBP^Q11^QBP_Q11|f8f43036-2bb8-46cf-ab97-4ed0c6d938f0|P|2.5.1|||ER|AL||UNICODE UTF-8|||LAB-27^IHE";
+        try {
+
+            // Send the HL7 message
+            limsSocket.getOutputStream().write(hl7Message.getBytes());
+            limsSocket.getOutputStream().flush();
+            System.out.println("HL7 message sent:\n" + hl7Message);
+
+            // Wait for the response message
+            byte[] buffer = new byte[1024];
+            int bytesRead = limsSocket.getInputStream().read(buffer);
+            if (bytesRead != -1) {
+                String response = new String(buffer, 0, bytesRead);
+                System.out.println("Response message received:\n" + response);
+                return response;
+            } else {
+                System.out.println("Error: Did not receive a response message");
+                return "Error: Did not receive a response message";
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
+        }
     }
 
     private static void hostQuery(Socket limsSocket) {
